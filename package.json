@@ -1,0 +1,45 @@
+{
+  "name": "rollup-plugin-typescript3",
+  "version": "1.0.0",
+  "description": "Rollup plugin for TypeScript",
+  "main": "index.js",
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "utils.js"
+  ],
+  "scripts": {
+    "prepare": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohd-akram/rollup-plugin-typescript.git"
+  },
+  "keywords": [
+    "rollup-plugin",
+    "typescript"
+  ],
+  "author": "Mohamed Akram",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mohd-akram/rollup-plugin-typescript/issues"
+  },
+  "homepage": "https://github.com/mohd-akram/rollup-plugin-typescript#readme",
+  "peerDependencies": {
+    "typescript": "^2.7.2"
+  },
+  "devDependencies": {
+    "@types/chokidar": "^1.7.5",
+    "@types/glob": "^5.0.35",
+    "@types/node": "^9.4.7",
+    "@types/source-map": "^0.5.7",
+    "magic-string": "^0.23.2",
+    "rollup": "^0.57.1",
+    "typescript": "^2.7.2"
+  },
+  "dependencies": {
+    "glob": "^7.1.2",
+    "tslib": "^1.9.0"
+  }
+}
