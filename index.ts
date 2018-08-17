@@ -2,18 +2,22 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import * as glob from 'glob';
-import { Plugin } from 'rollup';
-import { TransformContext } from 'rollup/dist/typings/utils/transform';
+import * as _glob from 'glob';
+import { Plugin, PluginContext } from 'rollup';
 import * as ts from 'typescript';
 
 import { getCodeFrame } from './utils';
 
-async function getCompilerOptions() {
-  const readFile = util.promisify(fs.readFile);
+const fsExists = util.promisify(fs.exists);
+const fsReadFile = util.promisify(fs.readFile);
+const glob = util.promisify(_glob);
 
+const configFilename = 'tsconfig.json';
+const extensions = ['.ts', '.tsx'];
+
+async function getCompilerOptions() {
   const result = ts.parseConfigFileTextToJson(
-    'tsconfig.json', await readFile('tsconfig.json', 'utf-8')
+    configFilename, await fsReadFile(configFilename, 'utf-8')
   );
 
   if (result.error)
@@ -34,7 +38,9 @@ async function getCompilerOptions() {
   return compilerOptions;
 }
 
-function printDiagnostics(diagnostics: ts.Diagnostic[], context?: TransformContext) {
+function printDiagnostics(
+  diagnostics: ts.Diagnostic[], context?: PluginContext
+) {
   for (const diagnostic of diagnostics) {
     const message = ts.flattenDiagnosticMessageText(
       diagnostic.messageText, ts.sys.newLine
@@ -61,6 +67,10 @@ function printDiagnostics(diagnostics: ts.Diagnostic[], context?: TransformConte
   }
 }
 
+function isTsFile(filename: string) {
+  return extensions.includes(path.extname(filename));
+}
+
 export default function typescript() {
   let input: string[];
   let compilerOptions: ts.CompilerOptions;
@@ -70,25 +80,27 @@ export default function typescript() {
     name: 'typescript',
 
     options(options) {
-      input = Array.isArray(options.input) ? options.input : [options.input];
+      input = Array.isArray(options.input) ? options.input :
+        typeof options.input == 'string' ? [options.input] :
+          Object.values(options.input);
     },
 
     async resolveId(importee, importer) {
-      if (path.extname(importee) || !importer.endsWith('.ts'))
+      if (path.extname(importee) || !isTsFile(importer))
         return;
 
-      const filename = `${importee}.ts`;
-      const id = path.resolve(path.dirname(importer), filename);
-      const exists = await util.promisify(fs.exists)(id);
+      for (const ext of extensions) {
+        const filename = `${importee}${ext}`;
+        const id = path.resolve(path.dirname(importer), filename);
+        if (await fsExists(id))
+          return id;
+      }
 
-      if (!exists)
-        return;
-
-      return id;
+      return;
     },
 
     async transform(source, id) {
-      if (!id.endsWith('.ts'))
+      if (!isTsFile(id))
         return;
 
       if (!compilerOptions) {
@@ -100,7 +112,7 @@ export default function typescript() {
       }
 
       if (!program) {
-        const files = await util.promisify(glob)(
+        const files = await glob(
           '**/*.d.ts', { ignore: 'node_modules/**' }
         );
         files.push(...input);
