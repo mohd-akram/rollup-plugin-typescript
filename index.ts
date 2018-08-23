@@ -15,27 +15,31 @@ const glob = util.promisify(_glob);
 const configFilename = 'tsconfig.json';
 const extensions = ['.ts', '.tsx'];
 
-async function getCompilerOptions() {
-  const result = ts.parseConfigFileTextToJson(
-    configFilename, await fsReadFile(configFilename, 'utf-8')
-  );
+const compilerOptions: ts.CompilerOptions = Object.freeze({
+  importHelpers: true,
+  sourceMap: true,
+  module: ts.ModuleKind.ES2015,
+  moduleResolution: ts.ModuleResolutionKind.NodeJs
+});
 
-  if (result.error)
-    throw [result.error];
+async function getCompilerOptions(options?: PluginOptions) {
+  let parsed: { options: ts.CompilerOptions, errors: ts.Diagnostic[] };
 
-  const parsed = ts.parseJsonConfigFileContent(result.config, ts.sys, '');
+  if (options && options.compilerOptions) {
+    parsed = ts.convertCompilerOptionsFromJson(options.compilerOptions, '');
+  } else {
+    const result = ts.parseConfigFileTextToJson(
+      configFilename, await fsReadFile(configFilename, 'utf-8')
+    );
+    if (result.error)
+      throw [result.error];
+    parsed = ts.parseJsonConfigFileContent(result.config, ts.sys, '');
+  }
 
   if (parsed.errors.length)
     throw parsed.errors;
 
-  const compilerOptions = parsed.options;
-
-  compilerOptions.importHelpers = true;
-  compilerOptions.sourceMap = true;
-  compilerOptions.module = ts.ModuleKind.ES2015;
-  compilerOptions.moduleResolution = ts.ModuleResolutionKind.NodeJs;
-
-  return compilerOptions;
+  return Object.assign(parsed.options, compilerOptions);
 }
 
 function printDiagnostics(
@@ -71,7 +75,11 @@ function isTsFile(filename: string) {
   return extensions.includes(path.extname(filename));
 }
 
-export default function typescript() {
+interface PluginOptions {
+  compilerOptions: ts.CompilerOptions;
+}
+
+export default function typescript(options?: PluginOptions) {
   let input: string[];
   let compilerOptions: ts.CompilerOptions;
   let program: ts.Program;
@@ -79,10 +87,10 @@ export default function typescript() {
   const plugin: Plugin = {
     name: 'typescript',
 
-    options(options) {
-      input = Array.isArray(options.input) ? options.input :
-        typeof options.input == 'string' ? [options.input] :
-          Object.values(options.input);
+    options(inputOptions) {
+      input = Array.isArray(inputOptions.input) ? inputOptions.input :
+        typeof inputOptions.input == 'string' ? [inputOptions.input] :
+          Object.values(inputOptions.input);
     },
 
     async resolveId(importee, importer) {
@@ -105,7 +113,7 @@ export default function typescript() {
 
       if (!compilerOptions) {
         try {
-          compilerOptions = await getCompilerOptions();
+          compilerOptions = await getCompilerOptions(options);
         } catch (diagnostics) {
           printDiagnostics(diagnostics);
         }
