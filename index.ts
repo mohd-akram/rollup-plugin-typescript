@@ -23,17 +23,28 @@ const compilerOptions: ts.CompilerOptions = Object.freeze({
 });
 
 async function getCompilerOptions(options?: PluginOptions) {
-  let parsed: { options: ts.CompilerOptions, errors: ts.Diagnostic[] };
+  let parsed = {
+    options: {} as ts.CompilerOptions, errors: [] as ts.Diagnostic[]
+  };
 
   if (options && options.compilerOptions) {
     parsed = ts.convertCompilerOptionsFromJson(options.compilerOptions, '');
   } else {
-    const result = ts.parseConfigFileTextToJson(
-      configFilename, await fsReadFile(configFilename, 'utf-8')
-    );
-    if (result.error)
-      throw [result.error];
-    parsed = ts.parseJsonConfigFileContent(result.config, ts.sys, '');
+    let text: string | undefined;
+    try {
+      text = await fsReadFile(configFilename, 'utf-8');
+    } catch (e) {
+      if (e.code != 'ENOENT')
+        throw [{
+          messageText: e.message, category: ts.DiagnosticCategory.Error
+        } as ts.Diagnostic];
+    }
+    if (text) {
+      const result = ts.parseConfigFileTextToJson(configFilename, text);
+      if (result.error)
+        throw [result.error];
+      parsed = ts.parseJsonConfigFileContent(result.config, ts.sys, '');
+    }
   }
 
   if (parsed.errors.length)
