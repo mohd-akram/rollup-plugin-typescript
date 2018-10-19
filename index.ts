@@ -86,6 +86,16 @@ function isTsFile(filename: string) {
   return extensions.includes(path.extname(filename));
 }
 
+async function resolve(importee: string, importer: string) {
+  for (const ext of extensions) {
+    const filename = `${importee}${ext}`;
+    const id = path.resolve(path.dirname(importer), filename);
+    if (await fsExists(id))
+      return id;
+  }
+  return;
+}
+
 interface PluginOptions {
   compilerOptions: ts.CompilerOptions;
 }
@@ -108,14 +118,10 @@ export default function typescript(options?: PluginOptions) {
       if (path.extname(importee) || !isTsFile(importer))
         return;
 
-      for (const ext of extensions) {
-        const filename = `${importee}${ext}`;
-        const id = path.resolve(path.dirname(importer), filename);
-        if (await fsExists(id))
-          return id;
-      }
-
-      return;
+      return (
+        await resolve(importee, importer) ||
+        await resolve(path.join(importee, 'index'), importer)
+      );
     },
 
     async transform(source, id) {
