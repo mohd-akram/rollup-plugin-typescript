@@ -54,7 +54,7 @@ async function getCompilerOptions(options?: PluginOptions) {
 }
 
 function printDiagnostics(
-  diagnostics: ts.Diagnostic[], context?: PluginContext
+  diagnostics: readonly ts.Diagnostic[], context?: PluginContext
 ) {
   for (const diagnostic of diagnostics) {
     const message = ts.flattenDiagnosticMessageText(
@@ -101,7 +101,7 @@ interface PluginOptions {
 }
 
 export default function typescript(options?: PluginOptions) {
-  let input: string[];
+  let input: string[] = [];
   let compilerOptions: ts.CompilerOptions;
   let program: ts.Program;
 
@@ -109,13 +109,15 @@ export default function typescript(options?: PluginOptions) {
     name: 'typescript',
 
     options(inputOptions) {
+      if (!inputOptions.input) return;
       input = Array.isArray(inputOptions.input) ? inputOptions.input :
         typeof inputOptions.input == 'string' ? [inputOptions.input] :
           Object.values(inputOptions.input);
+      return null;
     },
 
     async resolveId(importee, importer) {
-      if (path.extname(importee) || !isTsFile(importer))
+      if (path.extname(importee) || !importer || !isTsFile(importer))
         return;
 
       return (
