@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
@@ -8,8 +8,6 @@ import * as ts from 'typescript';
 
 import { getCodeFrame } from './utils';
 
-const fsExists = util.promisify(fs.exists);
-const fsReadFile = util.promisify(fs.readFile);
 const glob = util.promisify(_glob);
 
 const configFilename = 'tsconfig.json';
@@ -18,7 +16,7 @@ const extensions = ['.ts', '.tsx'];
 const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
   sourceMap: true,
-  module: ts.ModuleKind.ES2015,
+  module: ts.ModuleKind.ES2020,
   moduleResolution: ts.ModuleResolutionKind.NodeJs
 });
 
@@ -32,7 +30,7 @@ async function getCompilerOptions(options?: PluginOptions) {
   } else {
     let text: string | undefined;
     try {
-      text = await fsReadFile(configFilename, 'utf-8');
+      text = await fs.readFile(configFilename, 'utf-8');
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code != 'ENOENT')
         throw [{
@@ -91,8 +89,10 @@ async function resolve(importee: string, importer: string) {
   for (const ext of extensions) {
     const filename = `${importee}${ext}`;
     const id = path.resolve(path.dirname(importer), filename);
-    if (await fsExists(id))
+    try {
+      await fs.access(id);
       return id;
+    } catch (e) { }
   }
   return;
 }
