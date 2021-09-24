@@ -34,9 +34,10 @@ async function getCompilerOptions(options?: PluginOptions) {
     try {
       text = await fsReadFile(configFilename, 'utf-8');
     } catch (e) {
-      if (e.code != 'ENOENT')
+      if ((e as NodeJS.ErrnoException).code != 'ENOENT')
         throw [{
-          messageText: e.message, category: ts.DiagnosticCategory.Error
+          messageText: (e as NodeJS.ErrnoException).message,
+          category: ts.DiagnosticCategory.Error
         } as ts.Diagnostic];
     }
     if (text) {
@@ -134,7 +135,7 @@ export default function typescript(options?: PluginOptions) {
         try {
           compilerOptions = await getCompilerOptions(options);
         } catch (diagnostics) {
-          printDiagnostics(diagnostics);
+          printDiagnostics(diagnostics as ts.Diagnostic[]);
         }
       }
 
