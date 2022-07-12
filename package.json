@@ -27,16 +27,16 @@
   },
   "homepage": "https://github.com/mohd-akram/rollup-plugin-typescript#readme",
   "peerDependencies": {
-    "typescript": "^4.4.3"
+    "typescript": "^4.7.4"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.4",
-    "@types/node": "^16.9.6",
-    "rollup": "^2.57.0",
-    "typescript": "^4.4.3"
+    "@types/glob": "^7.2.0",
+    "@types/node": "^18.0.3",
+    "rollup": "^2.76.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
-    "glob": "^7.2.0",
-    "tslib": "^2.3.1"
+    "glob": "^8.0.3",
+    "tslib": "^2.4.0"
   }
 }

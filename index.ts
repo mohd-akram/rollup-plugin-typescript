@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as util from 'util';
 
@@ -16,7 +16,7 @@ const extensions = ['.ts', '.tsx'];
 const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
   sourceMap: true,
-  module: ts.ModuleKind.ES2020,
+  module: ts.ModuleKind.ES2022,
   moduleResolution: ts.ModuleResolutionKind.NodeJs
 });
 
