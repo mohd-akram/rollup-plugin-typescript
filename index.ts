@@ -6,7 +6,15 @@ import { Plugin, PluginContext } from "rollup";
 import ts from "typescript";
 
 const configFilename = "tsconfig.json";
-const extensions = [".ts", ".tsx"];
+
+const tsExtensions = new Set([".ts", ".tsx", ".cts", ".mts"]);
+
+const jsExtensions = {
+  ".js": ".ts",
+  ".jsx": ".tsx",
+  ".cjs": ".cts",
+  ".mjs": ".mts",
+};
 
 const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
@@ -77,20 +85,27 @@ function printDiagnostics(
 }
 
 function isTsFile(filename: string) {
-  return extensions.includes(path.extname(filename));
+  return tsExtensions.has(path.extname(filename));
 }
 
 async function resolve(importee: string, importer: string) {
-  importee = importee.replace(/\.[^.]+$/, "");
-  for (const ext of extensions) {
-    const filename = `${importee}${ext}`;
-    const id = path.resolve(path.dirname(importer), filename);
-    try {
-      await fs.access(id);
-      return id;
-    } catch (e) {}
+  const ext = path.extname(importee);
+
+  if (!(ext in jsExtensions)) return;
+
+  importee = importee.replace(
+    /\.[^.]+$/,
+    (ext) => jsExtensions[ext as keyof typeof jsExtensions]
+  );
+
+  const id = path.resolve(path.dirname(importer), importee);
+
+  try {
+    await fs.access(id);
+    return id;
+  } catch (e) {
+    return;
   }
-  return;
 }
 
 interface PluginOptions {
@@ -117,11 +132,7 @@ function typescript(options?: PluginOptions) {
 
     async resolveId(importee, importer) {
       if (!importer || !isTsFile(importer)) return;
-
-      return (
-        (await resolve(importee, importer)) ||
-        (await resolve(path.join(importee, "index"), importer))
-      );
+      return await resolve(importee, importer);
     },
 
     async transform(source, id) {
