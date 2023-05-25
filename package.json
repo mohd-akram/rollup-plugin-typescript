@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-typescript3",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Rollup plugin for TypeScript",
   "main": "index.js",
   "files": [
