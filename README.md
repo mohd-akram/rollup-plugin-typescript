@@ -1,23 +1,17 @@
-rollup-plugin-typescript3
-=========================
+# rollup-plugin-typescript3
 
-Installation
-------------
+## Installation
 
     npm install --save-dev rollup-plugin-typescript3
 
-Usage
------
+## Usage
 
 ```javascript
 // rollup.config.js
-import typescript from 'rollup-plugin-typescript3';
+import typescript from "rollup-plugin-typescript3";
 
 export default {
-  entry: './main.ts',
-
-  plugins: [
-    typescript()
-  ]
-}
+  entry: "./main.ts",
+  plugins: [typescript()],
+};
 ```
