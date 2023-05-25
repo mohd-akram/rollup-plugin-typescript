@@ -98,7 +98,7 @@ interface PluginOptions {
   compilerOptions: ts.CompilerOptions;
 }
 
-export default function typescript(options?: PluginOptions) {
+function typescript(options?: PluginOptions) {
   let input: string[] = [];
   let compilerOptions: ts.CompilerOptions;
   let program: ts.Program;
@@ -159,3 +159,5 @@ export default function typescript(options?: PluginOptions) {
 
   return plugin;
 }
+
+export = typescript;
