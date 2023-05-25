@@ -5,8 +5,7 @@
   "main": "index.js",
   "files": [
     "index.d.ts",
-    "index.js",
-    "utils.js"
+    "index.js"
   ],
   "scripts": {
     "prepare": "tsc",

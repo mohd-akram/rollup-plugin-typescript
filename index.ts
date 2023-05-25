@@ -5,8 +5,6 @@ import { glob } from 'glob';
 import { Plugin, PluginContext } from 'rollup';
 import ts from 'typescript';
 
-import { getCodeFrame } from './utils';
-
 const configFilename = 'tsconfig.json';
 const extensions = ['.ts', '.tsx'];
 
@@ -14,7 +12,7 @@ const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
   sourceMap: true,
   module: ts.ModuleKind.ES2022,
-  moduleResolution: ts.ModuleResolutionKind.NodeJs
+  moduleResolution: ts.ModuleResolutionKind.Node16
 });
 
 async function getCompilerOptions(options?: PluginOptions) {
@@ -50,7 +48,7 @@ async function getCompilerOptions(options?: PluginOptions) {
 }
 
 function printDiagnostics(
-  diagnostics: readonly ts.Diagnostic[], context?: PluginContext
+  diagnostics: readonly ts.Diagnostic[], context: PluginContext
 ) {
   for (const diagnostic of diagnostics) {
     const message = ts.flattenDiagnosticMessageText(
@@ -65,16 +63,10 @@ function printDiagnostics(
       file: id, line: lc.line + 1, column: lc.character
     } : undefined;
 
-    if (context) {
-      if (diagnostic.category == ts.DiagnosticCategory.Error)
-        context.error({ message }, loc);
-      else if (diagnostic.category == ts.DiagnosticCategory.Warning)
-        context.warn({ message }, loc);
-    } else {
-      const frame = file && loc ?
-        getCodeFrame(file.text, loc.line, loc.column) : null;
-      throw { message, id, loc, frame };
-    }
+    if (diagnostic.category == ts.DiagnosticCategory.Error)
+      context.error({ message }, loc);
+    else if (diagnostic.category == ts.DiagnosticCategory.Warning)
+      context.warn({ message }, loc);
   }
 }
 
@@ -83,6 +75,7 @@ function isTsFile(filename: string) {
 }
 
 async function resolve(importee: string, importer: string) {
+  importee = importee.replace(/\.[^.]+$/, '');
   for (const ext of extensions) {
     const filename = `${importee}${ext}`;
     const id = path.resolve(path.dirname(importer), filename);
@@ -115,7 +108,7 @@ function typescript(options?: PluginOptions) {
     },
 
     async resolveId(importee, importer) {
-      if (path.extname(importee) || !importer || !isTsFile(importer))
+      if (!importer || !isTsFile(importer))
         return;
 
       return (
@@ -132,7 +125,7 @@ function typescript(options?: PluginOptions) {
         try {
           compilerOptions = await getCompilerOptions(options);
         } catch (diagnostics) {
-          printDiagnostics(diagnostics as ts.Diagnostic[]);
+          printDiagnostics(diagnostics as ts.Diagnostic[], this);
         }
       }
 
