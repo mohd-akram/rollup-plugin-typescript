@@ -1,9 +1,9 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import fs from 'fs/promises';
+import path from 'path';
 
 import { glob } from 'glob';
 import { Plugin, PluginContext } from 'rollup';
-import * as ts from 'typescript';
+import ts from 'typescript';
 
 import { getCodeFrame } from './utils';
 
