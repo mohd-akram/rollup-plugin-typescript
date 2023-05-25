@@ -1,14 +1,11 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as util from 'util';
 
-import * as _glob from 'glob';
+import { glob } from 'glob';
 import { Plugin, PluginContext } from 'rollup';
 import * as ts from 'typescript';
 
 import { getCodeFrame } from './utils';
-
-const glob = util.promisify(_glob);
 
 const configFilename = 'tsconfig.json';
 const extensions = ['.ts', '.tsx'];
