@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 
 import { glob } from "glob";
-import { Plugin, PluginContext } from "rollup";
+import { Plugin, TransformPluginContext } from "rollup";
 import ts from "typescript";
 
 const configFilename = "tsconfig.json";
@@ -58,7 +58,7 @@ async function getCompilerOptions(options?: PluginOptions) {
 
 function printDiagnostics(
   diagnostics: readonly ts.Diagnostic[],
-  context: PluginContext
+  context: TransformPluginContext
 ) {
   for (const diagnostic of diagnostics) {
     const message = ts.flattenDiagnosticMessageText(
