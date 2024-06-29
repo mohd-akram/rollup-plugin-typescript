@@ -19,7 +19,7 @@ const jsExtensions = {
 const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
   sourceMap: true,
-  module: ts.ModuleKind.ES2022,
+  module: ts.ModuleKind.Node16,
   moduleResolution: ts.ModuleResolutionKind.Node16,
 });
 
