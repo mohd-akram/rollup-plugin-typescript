@@ -19,8 +19,8 @@ const jsExtensions = {
 const compilerOptions: ts.CompilerOptions = Object.freeze({
   importHelpers: true,
   sourceMap: true,
-  module: ts.ModuleKind.Node16,
-  moduleResolution: ts.ModuleResolutionKind.Node16,
+  module: ts.ModuleKind.ES2022,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
 });
 
 async function getCompilerOptions(options?: PluginOptions) {
